@@ -1,0 +1,20 @@
+{
+	"main": "main.js",
+	"author": "Xwdrblue",
+	"type": "module",
+	"license": "ISC",
+	"scripts": {
+		"lint": "npx eslint",
+		"fix-eslint": "npx eslint --fix ",
+		"load-data": "node main.js"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.9.0",
+		"@stylistic/eslint-plugin-js": "^2.6.4",
+		"axios": "^1.7.4",
+		"date-fns": "^3.6.0",
+		"dotenv": "^16.4.5",
+		"eslint": "^9.9.0",
+		"bdd-service-hall-e": "github:hugo38rodrigues/bdd-hall-e"
+	}
+}
