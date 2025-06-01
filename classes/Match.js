@@ -77,6 +77,7 @@ export class Match {
 			const gameName = this.#formatLeagueName(data.videogame.slug)
 			const leagueName = data.league.name
 			const reschulded = data.rescheduled
+			const platformStream = data.streams_list.map((streamItem) => {streamItem.main === true ? streamItem.raw_url : null})
 			const getTeamData = (field) =>
 				data.opponents.map((opponent) => opponent.opponent[field]) || []
 
@@ -87,6 +88,7 @@ export class Match {
 			const isEmptyData = [
 				idMatch,
 				date,
+				platformStream,
 				reschulded,
 				numberOfGame,
 				gameName,
@@ -104,6 +106,7 @@ export class Match {
 			return {
 				idMatch,
 				date,
+				platformStream,
 				numberOfGame,
 				leagueName,
 				gameName,
