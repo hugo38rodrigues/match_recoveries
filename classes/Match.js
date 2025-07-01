@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { TOKEN_API } from '../utils/constants.utils.js'
+import { gamesHype, leaguesHype, teamsHype } from '../utils/hype-data.utils.js'
 
 export class Match {
 	constructor (game) {
@@ -26,13 +27,12 @@ export class Match {
 
 	#getMatches = async (startDate, endDate, pageNumber = 1, allMatches = []) => {
 		try {
-			
 			const response = await axios.get(`https://api.pandascore.co/${this.game}/matches/upcoming`, {
 				params: {
 					'range[begin_at]': `${startDate},${endDate}`,
-					'page[size]': 100, 
+					'page[size]': 100,
 					'page[number]': pageNumber,
-					token: TOKEN_API, 
+					token: TOKEN_API,
 				},
 			})
 
@@ -43,21 +43,24 @@ export class Match {
 				console.log(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.#getMatches(startDate, endDate, pageNumber + 1, allMatches)
 			} else {
-				console.log('Tous les matchs ont été récupérés.')
+				console.log(`Tous les matchs ${this.game} ont été récupérés.`)
 				return allMatches
 			}
 		} catch (error) {
-			console.error('Erreur lors de la requête:', error.response ? error.response.data : error.message)
+			console.error(
+				'Erreur lors de la requête:',
+				error.response ? error.response.data : error.message
+			)
 		}
 	}
 
-	#generateDates = () =>{
-		const today = new Date() 
+	#generateDates = () => {
+		const today = new Date()
 		const futureDate = new Date(today)
 
 		futureDate.setDate(today.getDate() + 14)
 
-		const formattedToday = today.toISOString() 
+		const formattedToday = today.toISOString()
 		const formattedFutureDate = futureDate.toISOString()
 
 		return {
@@ -65,7 +68,19 @@ export class Match {
 			futureDate: formattedFutureDate
 		}
 	}
-	
+
+	#computeHype = (gameName, leagueName, team1, team2) => {
+		const gameScoreHype = gamesHype.map((game)=> {return game === gameName ? 1: 0})
+		const leagueScoreHype = leaguesHype.map((leagueHype)=> {return leagueHype === leagueName ? 1: 0})
+		const teams1ScoreHype = teamsHype.map((team1Hype)=> {return team1Hype === team1 ? 1: 0})
+		const teams2ScoreHype = teamsHype.map((team2Hype) => {
+			return team2Hype === team2 ? 1 : 0
+		})
+		const hypeScoreTotal = gameScoreHype+ leagueScoreHype+ teams1ScoreHype + teams2ScoreHype
+		return  hypeScoreTotal === 4 ? 3 : hypeScoreTotal
+
+	}
+
 	createdMatch = async () => {
 		const { today, futureDate } = this.#generateDates()
 
@@ -88,6 +103,7 @@ export class Match {
 			const [team1Acronym, team2Acronym] = getTeamData('acronym')
 			const [team1Logo, team2Logo] = getTeamData('image_url')
 			const filterStreamPlatform = streamPlatform.filter((streamItem) => streamItem !== null)	
+			const hypeScore = this.#computeHype(gameName, leagueName, team1Name, team2Name)
 			const isEmptyData = [
 				idMatch,
 				date,
@@ -114,6 +130,7 @@ export class Match {
 				leagueName,
 				gameName,
 				reschulded,
+				hypeScore,
 				team1: {
 					name: team1Name,
 					acronym: team1Acronym,
