@@ -87,7 +87,7 @@ export class Match {
 			const [team1Name, team2Name] = getTeamData('name')
 			const [team1Acronym, team2Acronym] = getTeamData('acronym')
 			const [team1Logo, team2Logo] = getTeamData('image_url')
-
+			const filterStreamPlatform = streamPlatform.filter((streamItem) => streamItem !== null)	
 			const isEmptyData = [
 				idMatch,
 				date,
