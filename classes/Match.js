@@ -77,7 +77,10 @@ export class Match {
 			const gameName = this.#formatLeagueName(data.videogame.slug)
 			const leagueName = data.league.name
 			const reschulded = data.rescheduled
-			const platformStream = data.streams_list.map((streamItem) => {streamItem.main === true ? streamItem.raw_url : null})
+			const streamPlatform = data.streams_list.map((streamItem) =>
+				streamItem.main === true ? streamItem.raw_url : null
+			)
+			
 			const getTeamData = (field) =>
 				data.opponents.map((opponent) => opponent.opponent[field]) || []
 
@@ -88,7 +91,7 @@ export class Match {
 			const isEmptyData = [
 				idMatch,
 				date,
-				platformStream,
+				filterStreamPlatform,
 				reschulded,
 				numberOfGame,
 				gameName,
@@ -102,11 +105,11 @@ export class Match {
 			if (isEmptyData) {
 				return null
 			}
-			
+
 			return {
 				idMatch,
 				date,
-				platformStream,
+				streamPlatform: filterStreamPlatform,
 				numberOfGame,
 				leagueName,
 				gameName,
@@ -130,53 +133,12 @@ export class Match {
 
 	processMatches = async (matches, recoveryMatchesInstance) => {
 		for (const match of matches) {
-		// const match = {
-		// 	idMatch: '1113222',
-		// 	date: '2025-02-20T17:00:00.000Z',
-		// 	numberOfGame: '5',
-		// 	leagueName: 'NLC',
-		// 	gameName: 'League of legends',
-		// 	reschulded: true,
-		// 	team1: {
-		// 		name: 'Verdant',
-		// 		acronym: 'VDN',
-		// 		logoUrl: 'https://cdn.pandascore.co/images/team/image/130202/verdantlogo_square.png',
-		// 	},
-		// 	team2: {
-		// 		name: 'Rich Gang',
-		// 		acronym: 'RG',
-		// 		logoUrl:
-		// 			'https://cdn.pandascore.co/images/team/image/135466/rich_gang__2528_norwegian_team_2529logo_square.png',
-		// 	},
-		// }
-		// const match = {
-		// 	idMatch: '1113222',
-		// 	date: '2025-02-21T17:00:00.000Z',
-		// 	numberOfGame: '5',
-		// 	leagueName: 'NLC',
-		// 	gameName: 'League of legends',
-		// 	reschulded: true,
-		// 	team1: {
-		// 		name: 'Verdant',
-		// 		acronym: 'VDN',
-		// 		logoUrl: 'https://cdn.pandascore.co/images/team/image/130202/verdantlogo_square.png',
-		// 	},
-		// 	team2: {
-		// 		name: 'Rich Gang',
-		// 		acronym: 'RG',
-		// 		logoUrl:
-		// 			'https://cdn.pandascore.co/images/team/image/135466/rich_gang__2528_norwegian_team_2529logo_square.png',
-		// 	},
-		// }
-
 			const isVerifyLolMatch = await recoveryMatchesInstance.verifyMatchIsPresent(match)
 			if (isVerifyLolMatch) {
 				console.error(`Match found ${match.idMatch}`)
 			} else {
-				
 				const team1 = await recoveryMatchesInstance.insertTeam(match.team1)
 				const team2 = await recoveryMatchesInstance.insertTeam(match.team2)
-				
 
 				const updateMatch = { ...match, team1: team1, team2: team2 }
 				await recoveryMatchesInstance.insertMatch(updateMatch)
