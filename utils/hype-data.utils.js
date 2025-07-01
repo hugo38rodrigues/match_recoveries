@@ -1,3 +1,3 @@
-export const gamesHype = ['lol']
+export const gamesHype = ['League of legends']
 export const leaguesHype = ['LCK']
-export const teamsHype = ['SKT']
+export const teamsHype = ['SKT', 'G2']

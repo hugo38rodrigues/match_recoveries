@@ -70,13 +70,12 @@ export class Match {
 	}
 
 	#computeHype = (gameName, leagueName, team1, team2) => {
-		const gameScoreHype = gamesHype.map((game)=> {return game === gameName ? 1: 0})
-		const leagueScoreHype = leaguesHype.map((leagueHype)=> {return leagueHype === leagueName ? 1: 0})
-		const teams1ScoreHype = teamsHype.map((team1Hype)=> {return team1Hype === team1 ? 1: 0})
-		const teams2ScoreHype = teamsHype.map((team2Hype) => {
-			return team2Hype === team2 ? 1 : 0
-		})
-		const hypeScoreTotal = gameScoreHype+ leagueScoreHype+ teams1ScoreHype + teams2ScoreHype
+		const gameScoreHype = gamesHype.includes(gameName)? 1 : 0
+		const leagueScoreHype = leaguesHype.includes(leagueName) ? 1 : 0
+		const teams1ScoreHype = teamsHype.includes(team1) ? 1 : 0
+		const teams2ScoreHype = teamsHype.includes(team2) ? 1 : 0
+
+		const hypeScoreTotal = gameScoreHype + leagueScoreHype + teams1ScoreHype + teams2ScoreHype
 		return  hypeScoreTotal === 4 ? 3 : hypeScoreTotal
 
 	}
@@ -85,6 +84,7 @@ export class Match {
 		const { today, futureDate } = this.#generateDates()
 
 		const responseData = await this.#getMatches(today, futureDate)
+
 		const matches = responseData.map((data) => {
 			const idMatch = data.id.toString()
 			const numberOfGame = data.number_of_games.toString()
@@ -103,7 +103,7 @@ export class Match {
 			const [team1Acronym, team2Acronym] = getTeamData('acronym')
 			const [team1Logo, team2Logo] = getTeamData('image_url')
 			const filterStreamPlatform = streamPlatform.filter((streamItem) => streamItem !== null)	
-			const hypeScore = this.#computeHype(gameName, leagueName, team1Name, team2Name)
+			const hypeScore = this.#computeHype(gameName, leagueName, team1Acronym, team2Acronym)
 			const isEmptyData = [
 				idMatch,
 				date,
@@ -144,7 +144,6 @@ export class Match {
 				},
 			}
 		})
-
 		return matches.filter((item) => item !== null)
 	}
 
