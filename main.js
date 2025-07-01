@@ -1,4 +1,4 @@
-import { databaseFactory, connectDb, disconnectDb } from 'bdd-service-hall-e/main.js'
+import { databaseFactory } from 'bdd-service-hall-e/main.js'
 import dotenv from 'dotenv'
 import { Match } from './classes/Match.js'
 
@@ -16,10 +16,9 @@ const valorantMatches = await valorant.createdMatch()
 console.log('############ END CREATED MATCH ############')
 
 const databaseInstance = databaseFactory()
+await databaseInstance.connectDb()
 const recoveryMatchesInstance = await databaseInstance.recoveryMatchesInstance()
 const currentDate = new Date()
-
-await connectDb()
 
 console.log('############ START DELETED OLD MATCH ############')
 
@@ -34,6 +33,6 @@ await csGo.processMatches(csMatches, recoveryMatchesInstance)
 await valorant.processMatches(valorantMatches, recoveryMatchesInstance)
 
 console.log('############ END SAVING MATCH ############')
-await disconnectDb()
+await databaseInstance.disconnectDb()
 
 process.exit(1)
