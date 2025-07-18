@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { TOKEN_API } from '../utils/constants.utils.js'
-import { gamesHype, leaguesHype, teamsHype } from '../utils/hype-data.utils.js'
+import { HypeScore } from './HypeScore.js'
 
 export class Match {
 	constructor (game) {
 		this.game = game
+		this.hypeScore = new HypeScore(game)
 	}
 
 	#checkedData = (value) => {
@@ -65,85 +66,92 @@ export class Match {
 
 		return {
 			today: formattedToday,
-			futureDate: formattedFutureDate
+			futureDate: formattedFutureDate,
 		}
-	}
-
-	#computeHype = (gameName, leagueName, team1, team2) => {
-		const gameScoreHype = gamesHype.includes(gameName)? 1 : 0
-		const leagueScoreHype = leaguesHype.includes(leagueName) ? 1 : 0
-		const teams1ScoreHype = teamsHype.includes(team1) ? 1 : 0
-		const teams2ScoreHype = teamsHype.includes(team2) ? 1 : 0
-
-		const hypeScoreTotal = gameScoreHype + leagueScoreHype + teams1ScoreHype + teams2ScoreHype
-		return  hypeScoreTotal === 4 ? 3 : hypeScoreTotal
-
 	}
 
 	createdMatch = async () => {
 		const { today, futureDate } = this.#generateDates()
 
 		const responseData = await this.#getMatches(today, futureDate)
+		const lastWinner = await this.hypeScore.getLastWinnerSeries()
+		const matches = await Promise.all(
+			responseData.map(async (data) => {
+				const idMatch = data.id.toString()
+				const numberOfGame = data.number_of_games.toString()
+				const date = this.#formatedDate(data.begin_at)
+				const gameName = this.#formatLeagueName(data.videogame.slug)
+				const leagueName = data.league.name
+				const reschulded = data.rescheduled
 
-		const matches = responseData.map((data) => {
-			const idMatch = data.id.toString()
-			const numberOfGame = data.number_of_games.toString()
-			const date = this.#formatedDate(data.begin_at)
-			const gameName = this.#formatLeagueName(data.videogame.slug)
-			const leagueName = data.league.name
-			const reschulded = data.rescheduled
-			const streamPlatform = data.streams_list.map((streamItem) =>
-				streamItem.main === true ? streamItem.raw_url : null
-			)
-			
-			const getTeamData = (field) =>
-				data.opponents.map((opponent) => opponent.opponent[field]) || []
+				const streamPlatform = data.streams_list.map((streamItem) =>
+					streamItem.main === true ? streamItem.raw_url : null
+				)
 
-			const [team1Name, team2Name] = getTeamData('name')
-			const [team1Acronym, team2Acronym] = getTeamData('acronym')
-			const [team1Logo, team2Logo] = getTeamData('image_url')
-			const filterStreamPlatform = streamPlatform.filter((streamItem) => streamItem !== null)	
-			const hypeScore = this.#computeHype(gameName, leagueName, team1Acronym, team2Acronym)
-			const isEmptyData = [
-				idMatch,
-				date,
-				filterStreamPlatform,
-				reschulded,
-				numberOfGame,
-				gameName,
-				leagueName,
-				team1Name,
-				team2Name,
-				team1Acronym,
-				team2Acronym,
-			].some((field) => this.#checkedData(field))
+				const getTeamData = (field) =>
+					data.opponents.map((opponent) => opponent.opponent[field]) || []
 
-			if (isEmptyData) {
-				return null
-			}
+				const [team1Id, team2Id] = getTeamData('id')
+				const [team1Name, team2Name] = getTeamData('name')
+				const [team1Acronym, team2Acronym] = getTeamData('acronym')
+				const [team1Logo, team2Logo] = getTeamData('image_url')
 
-			return {
-				idMatch,
-				date,
-				streamPlatform: filterStreamPlatform,
-				numberOfGame,
-				leagueName,
-				gameName,
-				reschulded,
-				hypeScore,
-				team1: {
-					name: team1Name,
-					acronym: team1Acronym,
-					logoUrl: team1Logo,
-				},
+				const filterStreamPlatform = streamPlatform.filter((streamItem) => streamItem !== null)
 
-				team2: {
-					name: team2Name,
-					acronym: team2Acronym,
-					logoUrl: team2Logo,
-				},
-			}
-		})
+				const hypeScore = this.hypeScore.computeHypeScore(
+					gameName,
+					leagueName,
+					team1Id,
+					team2Id,
+					lastWinner
+				)
+
+				const isEmptyData = [
+					idMatch,
+					date,
+					filterStreamPlatform,
+					reschulded,
+					numberOfGame,
+					gameName,
+					leagueName,
+					team1Id,
+					team2Id,
+					team1Name,
+					team2Name,
+					team1Acronym,
+					team2Acronym,
+				].some((field) => this.#checkedData(field))
+
+				if (isEmptyData) {
+					return null
+				}
+
+				return {
+					idMatch,
+					date,
+					streamPlatform: filterStreamPlatform,
+					numberOfGame,
+					leagueName,
+					gameName,
+					reschulded,
+					hypeScore,
+					team1: {
+						id: team1Id,
+						name: team1Name,
+						acronym: team1Acronym,
+						logoUrl: team1Logo,
+					},
+					team2: {
+						id: team2Id,
+						name: team2Name,
+						acronym: team2Acronym,
+						logoUrl: team2Logo,
+					},
+				}
+			})
+		)
+
+		// Filtrage après résolution
 		return matches.filter((item) => item !== null)
 	}
 
