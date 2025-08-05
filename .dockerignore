@@ -5,5 +5,4 @@ eslint.config.js
 README.md
 SECURITY.md
 node_modules
-.npmrc
 /.github
