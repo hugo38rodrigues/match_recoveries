@@ -3,6 +3,7 @@
 	"author": "Xwdrblue",
 	"type": "module",
 	"license": "ISC",
+	"version": "1.0.0",
 	"scripts": {
 		"lint": "npx eslint",
 		"fix-eslint": "npx eslint --fix ",
