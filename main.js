@@ -33,6 +33,5 @@ await csGo.processMatches(csMatches, recoveryMatchesInstance)
 await valorant.processMatches(valorantMatches, recoveryMatchesInstance)
 
 console.log('############ END SAVING MATCH ############')
-await databaseInstance.disconnectDb()
 
 process.exit(1)
