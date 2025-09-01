@@ -8,5 +8,5 @@ COPY . .
 RUN npm install
 EXPOSE 80
 
-CMD "npm load-data"
+CMD "npm run load-data"
 
