@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: match-recoveries
+spec:
+  schedule: '*/2 * * * *' # Toute les 10 mins
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: regcred
+          restartPolicy: Never
+          containers:
+            - name: recover-matches
+              image: xwdrblue/match_recoveries:1.0.0
+              imagePullPolicy: Always
+              env:
+                - name: NODE_ENV
+                  value: 'production'
+                - name: TOKEN_API_PANDASCORE
+                  value: 'd4IuV4C2nQrDTvlPjKSXIoJqNP6B4ySOwqoqcVORoGlEk7wmBo0'
+                - name: BDD_TARGET
+                  value: 'mongodb'
+                - name: DB_URL
+                  value: '172.17.0.1:27018'
+                - name: DB_USERNAME
+                  value: 'root'
+                - name: DB_PASSWORD
+                  value: 'password'
+                - name: DB_NAME
+                  value: 'hall-e-db-mongo-prod'
