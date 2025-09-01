@@ -1,12 +1,10 @@
-FROM node:23
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+FROM node:24-slim
 
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 COPY . .
-RUN npm install
-EXPOSE 80
+ENV NODE_ENV=production
 
-CMD "npm run load-data"
-
+CMD ["npm","run","load-data"]
