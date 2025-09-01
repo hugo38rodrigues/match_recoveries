@@ -9,7 +9,7 @@
 		"fix-eslint": "npx eslint --fix ",
 		"load-data": "node main.js"
 	},
-	"devDependencies": {
+	"dependencies": {
 		"@eslint/js": "^9.9.0",
 		"@stylistic/eslint-plugin-js": "^2.6.4",
 		"axios": "^1.7.4",
