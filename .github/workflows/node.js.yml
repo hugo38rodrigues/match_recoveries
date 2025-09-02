@@ -8,6 +8,10 @@ jobs:
   build-and-push:
     name: 🐳 Build & Push Docker Image
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: ./app
 
     steps:
       - name: Checkout code
@@ -18,12 +22,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 23
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
 
-      - name: Install dependencies
+      - name: Configure npm auth (GitHub Packages)
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" > ~/.npmrc
+
+      - name: Install dependencies (ci if lockfile, otherwise install)
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" > ~/.npmrc
-          npm ci
+          if [ -f package-lock.json ]; then
+            echo "Using npm ci (lockfile found)"
+            npm ci
+          else
+            echo "::warning::package-lock.json not found - using npm install (no caching benefits)."
+            npm install
+          fi
 
       - name: Get version from package.json
         id: version
@@ -38,4 +52,6 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx inspect --bootstrap
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/match_recoveries:${{ env.VERSION }} --push .
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ env.VERSION }} \
+            --push .
