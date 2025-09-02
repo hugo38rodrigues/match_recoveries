@@ -11,11 +11,11 @@
 	},
 	"dependencies": {
 		"axios": "^1.7.4",
-		"@hugo38rodrigues/bdd-service-hall-e": "1.0.0",
 		"date-fns": "^3.6.0",
-		"dotenv": "^16.4.5"
-		
+		"dotenv": "^16.4.5",
+		"@hugo38rodrigues/bdd-service-hall-e": "1.0.0"
 	},
+
 	"devDependencies": {
 		"@eslint/js": "^9.9.0",
 		"@stylistic/eslint-plugin-js": "^2.6.4",
