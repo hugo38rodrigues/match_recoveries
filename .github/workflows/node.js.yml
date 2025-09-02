@@ -11,9 +11,6 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    defaults:
-      run:
-        working-directory: ./app
 
     steps:
       - name: Checkout
@@ -38,5 +35,5 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg GITHUB_TOKEN=${GH_TOKEN} \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ env.VERSION }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/match_recoveries:${{ env.VERSION }} \
             --push .
