@@ -16,15 +16,11 @@ FROM node:24-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Crée un user non-root (UID/GID 1001) et ré répertoires
-RUN addgroup -S nodejs -g 1001 && adduser -S node -G nodejs -u 1001
 
 # Copie node_modules prod et le code
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Droits au user non-root
-USER 1001
 
 # Par défaut, lance le script de chargement
 # (Tu peux basculer sur ["npm","run","load-data"] si tu préfères)
