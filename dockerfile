@@ -1,27 +1,42 @@
-########################################
-# Étape deps : installe les deps prod
-########################################
-FROM node:24-alpine AS deps
+# syntax=docker/dockerfile:1.6
+
+############################
+# Étape deps/build
+############################
+FROM node:24-slim AS builder
 WORKDIR /app
 
-# Copie uniquement les manifests pour maximiser le cache
-COPY package*.json ./
+# Copie manifeste + lock (npm ci = reproductible)
+COPY package.json package-lock.json ./
 
-RUN npm ci --omit=dev  &&  npm cache clean --force
+# Reçoit le token GitHub Packages
+ARG GITHUB_TOKEN
 
-########################################
-# Étape runtime : image finale légère
-########################################
-FROM node:24-alpine AS runner
+RUN set -e; \
+  { echo "registry=https://registry.npmjs.org/"; \
+    echo "@hugo38rodrigues:registry=https://npm.pkg.github.com/"; \
+    echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}"; } > /root/.npmrc; \
+  npm ci --omit=dev; \
+  rm -f /root/.npmrc; \
+  npm cache clean --force
+
+# Copie le reste du code (après install pour profiter du cache)
+COPY . .
+
+############################
+# Étape runtime légère
+############################
+FROM node:24-slim AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
+# Copie node_modules + code
+COPY --from=builder /app ./
 
-# Copie node_modules prod et le code
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# (Optionnel) user non-root si besoin
+# USER node
 
 
-# Par défaut, lance le script de chargement
-# (Tu peux basculer sur ["npm","run","load-data"] si tu préfères)
-CMD ["npm","run","load-data"]
+# Démarrage (adapte selon ton app)
+# pour l'API:
+CMD ["npm", "run","load-data"]

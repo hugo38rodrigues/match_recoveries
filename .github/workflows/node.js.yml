@@ -6,35 +6,18 @@ on:
 
 jobs:
   build-and-push:
-    name: 🐳 Build & Push Docker Image
+    name: '🐳 Build & Push Docker Image'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    defaults:
+      run:
+        working-directory: ./app
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Configure npm auth (GitHub Packages)
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" > ~/.npmrc
-
-      - name: Install dependencies (ci if lockfile, otherwise install)
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "Using npm ci (lockfile found)"
-            npm ci
-          else
-            echo "::warning::package-lock.json not found - using npm install (no caching benefits)."
-            npm install
-          fi
 
       - name: Get version from package.json
         id: version
@@ -42,13 +25,18 @@ jobs:
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
           echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Log in to Docker
+      - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build & Push Docker image
+      - name: Setup Docker Buildx
         run: |
           docker buildx create --use
           docker buildx inspect --bootstrap
-          docker buildx build --platform linux/amd64,linux/arm64 \
+
+      - name: Build & Push
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg GITHUB_TOKEN=${GH_TOKEN} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ env.VERSION }} \
             --push .
