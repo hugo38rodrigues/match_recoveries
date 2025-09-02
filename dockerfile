@@ -1,29 +1,31 @@
-# Étape 1 : Build
-FROM node:24 AS builder
-
-# Crée un répertoire de travail
+########################################
+# Étape deps : installe les deps prod
+########################################
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copie les fichiers nécessaires
-COPY ./package*.json ./
+# Copie uniquement les manifests pour maximiser le cache
+COPY package*.json ./
 
-# Injecte les variables d'environnement si nécessaire (ex. via ARG)
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+RUN npm ci --omit=dev  &&  npm cache clean --force
 
-# Installe les dépendances, y compris le repo privé
-RUN npm install
+########################################
+# Étape runtime : image finale légère
+########################################
+FROM node:20-alpine AS runner
+ENV NODE_ENV=production
+WORKDIR /app
 
-# Copie le reste de l'app
+# Crée un user non-root (UID/GID 1001) et ré répertoires
+RUN addgroup -S nodejs -g 1001 && adduser -S node -G nodejs -u 1001
+
+# Copie node_modules prod et le code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Étape 2 : Image finale (plus légère)
-FROM node:24-slim
+# Droits au user non-root
+USER 1001
 
-WORKDIR /app
-
-# Copie uniquement les fichiers nécessaires depuis l'étape de build
-COPY --from=builder /app ./
-
-# Commande de démarrage
-CMD ["npm", "run","load-data"]
+# Par défaut, lance le script de chargement
+# (Tu peux basculer sur ["npm","run","load-data"] si tu préfères)
+CMD ["npm","run","load-data"]
