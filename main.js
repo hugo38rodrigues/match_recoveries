@@ -33,7 +33,10 @@ logger.info('############ START SAVING MATCH ############')
 await lol.processMatches(lolMatches, recoveryMatchesInstance)
 await csGo.processMatches(csMatches, recoveryMatchesInstance)
 await valorant.processMatches(valorantMatches, recoveryMatchesInstance)
-
-console.log('############ END SAVING MATCH ############')
-
-process.exit(1)
+try {
+	if (conn) await conn.close(true);
+	
+} catch (e) {
+	logger.error("Error close DB:", e);
+}
+logger.info('############ END SAVING MATCH ############')
