@@ -1,11 +1,13 @@
 import axios from 'axios'
 import { TOKEN_API } from '../utils/constants.utils.js'
 import { HypeScore } from './HypeScore.js'
+import Logger from './logger.js'
 
 export class Match {
 	constructor (game) {
 		this.game = game
 		this.hypeScore = new HypeScore(game)
+		this.logger = new Logger()
 	}
 
 	#checkedData = (value) => {
@@ -41,14 +43,14 @@ export class Match {
 
 			const linkHeader = response.headers.link
 			if (linkHeader && linkHeader.includes('rel="next"')) {
-				console.log(`Page ${pageNumber} récupérée, passage à la suivante...`)
+				this.logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.#getMatches(startDate, endDate, pageNumber + 1, allMatches)
 			} else {
-				console.log(`Tous les matchs ${this.game} ont été récupérés.`)
+				this.logger.info(`Tous les matchs ${this.game} ont été récupérés.`)
 				return allMatches
 			}
 		} catch (error) {
-			console.error(
+			this.logger.error(
 				'Erreur lors de la requête:',
 				error.response ? error.response.data : error.message
 			)
@@ -159,7 +161,7 @@ export class Match {
 		for (const match of matches) {
 			const isVerifyLolMatch = await recoveryMatchesInstance.verifyMatchIsPresent(match)
 			if (isVerifyLolMatch) {
-				console.error(`Match found ${match.idMatch}`)
+				this.logger.warn(`Match found ${match.idMatch}`)
 			} else {
 				const team1 = await recoveryMatchesInstance.insertTeam(match.team1)
 				const team2 = await recoveryMatchesInstance.insertTeam(match.team2)
