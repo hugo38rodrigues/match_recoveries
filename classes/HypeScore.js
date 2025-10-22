@@ -2,11 +2,13 @@ import axios from 'axios'
 import { TOKEN_API } from '../utils/constants.utils.js'
 import { getYers } from '../utils/date.js'
 import { gamesHype, leaguesHype } from '../utils/hype-data.utils.js'
+import Logger from './logger.js'
 
 export class HypeScore {
 	constructor (game) {
 		this.game = game
 		this.years = getYers()
+		this.logger = new Logger()
 	}
 
 	getLastWinnerSeries = async (pageNumber = 1, allWinners = []) => {
@@ -26,15 +28,14 @@ export class HypeScore {
 
 			const linkHeader = response.headers.link
 			if (linkHeader && linkHeader.includes('rel="next"')) {
-				console.log(`Page ${pageNumber} récupérée, passage à la suivante...`)
+				this.logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getLastWinnerSeries(pageNumber + 1, allWinners)
 			} else {
-				console.log(`Tous les gagnants de ${this.game} ont été récupérés.`)
-				console.log(typeof allWinners)
+				this.logger.info(`Tous les gagnants de ${this.game} ont été récupérés.`)
 				return allWinners
 			}
 		} catch (error) {
-			console.error(
+			this.logger.error(
 				'Erreur lors de la requête Last winner:',
 				error.response ? error.response.data : error.message
 			)
@@ -51,7 +52,7 @@ export class HypeScore {
 			const hypeScoreTotal = gameScoreHype + leagueScoreHype + teams1ScoreHype + teams2ScoreHype
 			return hypeScoreTotal === 4 ? 3 : hypeScoreTotal
 		} catch (error) {
-			console.error(error)
+			this.logger.error(error)
 		}
 	}
 }
