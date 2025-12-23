@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+   
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cronjob - Votre application qui s'exécute toutes les 10 minutes
+  recovery_match:
+    image: xwdrblue/recoveries_match:1.0.0
+    container_name: recovery_match
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+      - cron_logs:/var/log
+    environment:
+        TOKEN_API: ${TOKEN_API}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      apk add --no-cache dcron &&
+      cd /app &&
+      npm install &&
+      echo '*/10 * * * * cd /app && node index.js >> /var/log/app.log 2>&1' > /etc/crontabs/root &&
+      echo 'Cronjob configuré pour s exécuter toutes les 10 minutes' &&
+      crond -f -l 2
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+  cron_logs:
+    driver: local
