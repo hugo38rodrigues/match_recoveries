@@ -3,8 +3,6 @@ import dotenv from 'dotenv'
 import { Match } from './classes/Match.js'
 import Logger from './classes/logger.js'
 
-
-export const main = async () => {
 	dotenv.config()
 	const logger = new Logger()
 	const lol = new Match('lol')
@@ -33,4 +31,3 @@ export const main = async () => {
 	await csGo.processMatches(csMatches, recoveryMatchRepository)
 	await valorant.processMatches(valorantMatches, recoveryMatchRepository)
 	logger.info('############ END SAVING MATCH ############')
-}
