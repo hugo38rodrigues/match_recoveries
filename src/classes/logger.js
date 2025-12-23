@@ -7,7 +7,7 @@ const {
 } = winston.format
 
 export default class Logger {
-	constructor(context = '') {
+	constructor (context = '') {
 		const withContext = winston.format((info) => {
 			const newInfo = { ...info }
 
@@ -44,15 +44,13 @@ export default class Logger {
 			),
 			transports: [
 				new winston.transports.Console(),
-				// Optionnel : décommente pour forcer une trace dans un fichier
-				// new winston.transports.File({ filename: 'logs/app.log' }),
 			],
 			exitOnError: false,
 		})
 	}
 
 	// Tolère logger.log('message') → niveau 'info' par défaut
-	log(levelOrMsg, maybeMsg, meta = {}) {
+	log (levelOrMsg, maybeMsg, meta = {}) {
 		if (typeof levelOrMsg === 'string' && typeof maybeMsg === 'undefined') {
 			this.logger.log('info', levelOrMsg)
 			return
@@ -60,11 +58,11 @@ export default class Logger {
 		this.logger.log(levelOrMsg, maybeMsg, meta)
 	}
 
-	info(message, meta = {}) { this.logger.info(message, meta) }
+	info (message, meta = {}) { this.logger.info(message, meta) }
 
-	warn(message, meta = {}) { this.logger.warn(message, meta) }
+	warn (message, meta = {}) { this.logger.warn(message, meta) }
 
-	error(message, meta = {}) { this.logger.error(message, meta) }
+	error (message, meta = {}) { this.logger.error(message, meta) }
 
-	debug(message, meta = {}) { this.logger.debug(message, meta) }
+	debug (message, meta = {}) { this.logger.debug(message, meta) }
 }

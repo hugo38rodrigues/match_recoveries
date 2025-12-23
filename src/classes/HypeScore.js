@@ -20,6 +20,10 @@ export class HypeScore {
 					token: TOKEN_API,
 				},
 			})
+			
+			if(!response.data){
+				this.logger.error(`Erreur lors de la récupération des gagnant${response.data.lenght}`)
+			}
 
 			const winnersId = response.data
 				.filter((tournament) => tournament.winner_id !== null && tournament.years === this.years)
