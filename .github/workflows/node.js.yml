@@ -35,5 +35,5 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg GITHUB_TOKEN=${GH_TOKEN} \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/match_recoveries:${{ env.VERSION }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/recoveries_match:${{ env.VERSION }} \
             --push .
