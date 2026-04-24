@@ -2,38 +2,74 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, feature/**]
+    branches: ["main", "feature/**", "bugFix/**", "hotFix/**"]
+  pull_request:
+    branches: ["feature/**", "bugFix/**","hotFix/**"]
 
 jobs:
-  build-and-push:
-    name: '🐳 Build & Push Docker Image'
+  lint-and-test:
+    name: "🔍 Lint & Test"
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-    env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    defaults:
+      run:
+        working-directory: ./src
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Get version from package.json
-        id: version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/package-lock.json
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@hugo38rodrigues"
+
+      - name: Install
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+  build-and-push:
+    name: "🐳 Build & Push Docker"
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        run: echo "VERSION=$(node -p "require('./src/package.json').version")" >> $GITHUB_ENV
+
+      - name: Create Git tag
         run: |
-          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          git tag v${{ env.VERSION }} || echo "::warning::Tag v${{ env.VERSION }} existe déjà, skipping."
+          git push origin v${{ env.VERSION }} || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Setup Docker Buildx
-        run: |
-          docker buildx create --use
-          docker buildx inspect --bootstrap
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build & Push
-        run: |
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            --build-arg GITHUB_TOKEN=${GH_TOKEN} \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/recoveries_match:${{ env.VERSION }} \
-            --push .
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ env.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          secrets: github_token=${{ secrets.GH_TOKEN }}
