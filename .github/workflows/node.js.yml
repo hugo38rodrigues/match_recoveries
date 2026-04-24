@@ -103,8 +103,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ steps.version.outputs.VERSION }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/recovery-matches:${{ steps.version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/recovery-matches:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           secrets: |
