@@ -2,11 +2,19 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main", "feature/**", "bugFix/**", "hotFix/**","fix/**"]
+    branches: ["main", "feature/**", "bugFix/**", "hotFix/**", "fix/**"]
   pull_request:
-    branches: ["feature/**", "bugFix/**","hotFix/**"]
+    branches: ["feature/**", "bugFix/**", "hotFix/**"]
+
+# Annule les runs précédents sur la même ref (économise les minutes CI)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Lint & Test
+  # ---------------------------------------------------------------------------
   lint-and-test:
     name: "🔍 Lint & Test"
     runs-on: ubuntu-latest
@@ -36,40 +44,69 @@ jobs:
       - name: Test
         run: npm run test
 
+  # ---------------------------------------------------------------------------
+  # Build & Push Docker (main only)
+  # ---------------------------------------------------------------------------
   build-and-push:
     name: "🐳 Build & Push Docker"
     needs: lint-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
+    # Permissions minimales nécessaires pour pousser le tag git
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # nécessaire pour git tag/push
 
       - name: Get version
-        run: echo "VERSION=$(node -p "require('./src/package.json').version")" >> $GITHUB_ENV
+        id: version
+        run: echo "VERSION=$(node -p "require('./src/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.VERSION }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Tag v${{ steps.version.outputs.VERSION }} existe déjà, skipping Docker push."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create Git tag
+        if: steps.tag_check.outputs.exists == 'false'
         run: |
-          git tag v${{ env.VERSION }} || echo "::warning::Tag v${{ env.VERSION }} existe déjà, skipping."
-          git push origin v${{ env.VERSION }} || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ steps.version.outputs.VERSION }}"
+          git push origin "v${{ steps.version.outputs.VERSION }}"
 
       - uses: docker/login-action@v3
+        if: steps.tag_check.outputs.exists == 'false'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v3
+        if: steps.tag_check.outputs.exists == 'false'
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/setup-buildx-action@v3
+        if: steps.tag_check.outputs.exists == 'false'
+
+      - uses: docker/build-push-action@v6
+        if: steps.tag_check.outputs.exists == 'false'
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ env.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:${{ steps.version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/api-hall-e:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          secrets: github_token=${{ secrets.GH_TOKEN }}
+          secrets: |
+            github_token=${{ secrets.GH_TOKEN }}
+          provenance: false
