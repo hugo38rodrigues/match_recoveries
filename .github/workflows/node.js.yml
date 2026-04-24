@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main", "feature/**", "bugFix/**", "hotFix/**"]
+    branches: ["main", "feature/**", "bugFix/**", "hotFix/**","fix/**"]
   pull_request:
     branches: ["feature/**", "bugFix/**","hotFix/**"]
 
