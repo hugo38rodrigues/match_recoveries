@@ -43,9 +43,9 @@ describe('Match.js', () => {
 
 		mockApi = {
 			getMatches: vi.fn().mockResolvedValue([]),
+			getLastWinnerSeries: vi.fn().mockResolvedValue('team-winner-id'),
 		}
 		mockHype = {
-			getLastWinnerSeries: vi.fn().mockResolvedValue('team-winner-id'),
 			computeHypeScore: vi.fn().mockReturnValue(42),
 		}
 		mockExtraction = {
@@ -98,7 +98,7 @@ describe('Match.js', () => {
 
 		it('appelle getLastWinnerSeries en parallèle de getMatches', async () => {
 			await match.createdMatch()
-			expect(mockHype.getLastWinnerSeries).toHaveBeenCalledOnce()
+			expect(mockApi.getLastWinnerSeries).toHaveBeenCalledOnce()
 		})
 
 		it('retourne les matchs valides construits', async () => {
@@ -135,7 +135,7 @@ describe('Match.js', () => {
 		})
 
 		it('propage l\'erreur si getLastWinnerSeries échoue', async () => {
-			mockHype.getLastWinnerSeries.mockRejectedValue(new Error('Hype error'))
+			mockApi.getLastWinnerSeries.mockRejectedValue(new Error('Hype error'))
 			await expect(match.createdMatch()).rejects.toThrow('Hype error')
 		})})
 
@@ -178,7 +178,7 @@ describe('Match.js', () => {
  
 		it('appelle computeHypeScore avec les bons arguments', async () => {
 			mockApi.getMatches.mockResolvedValue([{ id: 1 }])
-			mockHype.getLastWinnerSeries.mockResolvedValue('winner-42')
+			mockApi.getLastWinnerSeries.mockResolvedValue('winner-42')
  
 			await match.createdMatch()
  
