@@ -67,6 +67,7 @@ export class ApiService {
 			allWinners.push(...winnersId)
 
 			const linkHeader = response.headers.link
+
 			if (linkHeader && linkHeader.includes('rel="next"')) {
 				this.logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getLastWinnerSeries(pageNumber + 1, allWinners)

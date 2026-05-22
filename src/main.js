@@ -21,7 +21,7 @@ const currentDate = new Date()
 
 logger.info('############ START DELETED OLD MATCH ############')
 
-await recoveryMatchRepository.deletedOldMatches(currentDate.setHours(0, 0, 0, 0))
+await recoveryMatchRepository.deleteOldMatches(currentDate.setHours(0, 0, 0, 0))
 
 logger.info('############ END DELETED OLD MATCH ############')
 
