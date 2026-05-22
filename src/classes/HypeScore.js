@@ -2,7 +2,7 @@ import { gamesHype, leaguesHype } from '../utils/hype-data.utils.js'
 import Logger from './logger.js'
 
 export class HypeScore {
-	constructor (game) {
+	constructor () {
 		this.logger = new Logger()
 	}
 
