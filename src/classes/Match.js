@@ -20,7 +20,7 @@ export class Match {
 		const { today, futureDate } = this.formatting.generateDateRange()
 		const [rawMatches, lastWinner] = await Promise.all([
 			this.api.getMatches(today, futureDate),
-			this.hypeScore.getLastWinnerSeries(),
+			this.api.getLastWinnerSeries()
 		])
 
 		const matches = await Promise.all(
@@ -31,8 +31,8 @@ export class Match {
 	}
 
 	#buildMatchFromRawData (data, lastWinner) {
-		const base      = this.extraction.extractBaseFields(data)
-		const streams   = this.extraction.extractStreamPlatforms(data)
+		const base = this.extraction.extractBaseFields(data)
+		const streams = this.extraction.extractStreamPlatforms(data)
 		const { team1, team2 } = this.extraction.extractTeams(data)
 
 		const isInvalid = this.validation.hasEmptyRequiredField({
