@@ -1,20 +1,34 @@
 import axios from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiService } from '../../../classes/services/Api.service.js'
-import { makeLogger, makeResponse } from './utils.js'
 
+
+const { makeLogger } = vi.hoisted(() => ({
+	makeLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		warn: vi.fn(),
+	},
+}))
+
+const makeResponse = (data, linkHeader = null) => ({
+	data,
+	headers: { link: linkHeader },
+})
+
+vi.mock('../../../utils/logger.js', () => ({ logger: makeLogger }))
 vi.mock('axios')
 vi.mock('../../../utils/constants.utils.js', () => ({ TOKEN_API: 'test-token' }))
 
+
 describe('getMatches()', () => {
 	let service
-	let logger
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		logger  = makeLogger()
-		service = new ApiService('lol', logger)
+		service = new ApiService('lol')
 	})
+
 	it('appelle l\'API avec les bons paramètres', async () => {
 		axios.get.mockResolvedValue(makeResponse([]))
 
@@ -48,7 +62,7 @@ describe('getMatches()', () => {
 		const result = await service.getMatches('2024-01-01', '2024-01-08')
 
 		expect(result).toEqual([])
-		expect(logger.error).toHaveBeenCalledWith('Erreur lors de la récupération des matchs')
+		expect(makeLogger.error).toHaveBeenCalledWith('Erreur lors de la récupération des matchs')
 	})
 
 	it('pagine et concatène les résultats si rel="next" est présent', async () => {
@@ -80,7 +94,7 @@ describe('getMatches()', () => {
 
 		await service.getMatches('2024-01-01', '2024-01-08')
 
-		expect(logger.info).toHaveBeenCalledWith('Tous les matchs lol ont été récupérés.')
+		expect(makeLogger.info).toHaveBeenCalledWith('Tous les matchs lol ont été récupérés.')
 	})
 
 	it('log info à chaque changement de page', async () => {
@@ -90,7 +104,7 @@ describe('getMatches()', () => {
 
 		await service.getMatches('2024-01-01', '2024-01-08')
 
-		expect(logger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
+		expect(makeLogger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
 	})
 
 	it('retourne [] et log error.message si axios lève une exception sans response', async () => {
@@ -99,7 +113,7 @@ describe('getMatches()', () => {
 		const result = await service.getMatches('2024-01-01', '2024-01-08')
 
 		expect(result).toEqual([])
-		expect(logger.error).toHaveBeenCalledWith('Erreur lors de la requête:', 'Network error')
+		expect(makeLogger.error).toHaveBeenCalledWith('Erreur lors de la requête:', 'Network error')
 	})
 
 	it('log error.response.data si la réponse d\'erreur existe', async () => {
@@ -107,7 +121,7 @@ describe('getMatches()', () => {
 
 		await service.getMatches('2024-01-01', '2024-01-08')
 
-		expect(logger.error).toHaveBeenCalledWith('Erreur lors de la requête:', 'Bad Request')
+		expect(makeLogger.error).toHaveBeenCalledWith('Erreur lors de la requête:', 'Bad Request')
 	})
 
 	it('pagine sur 3 pages et retourne tous les résultats', async () => {
@@ -122,4 +136,3 @@ describe('getMatches()', () => {
 		expect(result).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
 	})
 })
-

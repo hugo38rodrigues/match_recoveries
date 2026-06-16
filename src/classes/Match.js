@@ -1,5 +1,4 @@
 import { HypeScore } from './HypeScore.js'
-import Logger from './logger.js'
 import { ApiService } from './services/Api.service.js'
 import { DataExtractionService } from './services/DataExtraction.service.js'
 import { FormattingService } from './services/Formatting.service.js'
@@ -8,12 +7,11 @@ import { ValidationService } from './services/Validation.service.js'
 export class Match {
 	constructor (game) {
 		this.game = game
-		this.logger = new Logger()
 		this.hypeScore = new HypeScore(game)
 		this.validation = new ValidationService()
 		this.formatting = new FormattingService()
 		this.extraction = new DataExtractionService(this.formatting)
-		this.api = new ApiService(game, this.logger)
+		this.api = new ApiService(game)
 	}
 
 	async createdMatch () {

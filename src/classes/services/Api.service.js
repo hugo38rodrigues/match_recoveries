@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { TOKEN_API } from '../../utils/constants.utils.js'
+import { logger } from '../../utils/logger.js'
 
 export class ApiService {
-	constructor (game, logger) {
+	constructor (game) {
 		this.game = game
-		this.logger = logger
 	}
 
 	async getMatches (startDate, endDate, pageNumber = 1, allMatches = []) {
@@ -22,23 +22,23 @@ export class ApiService {
 			)
 
 			if (!response.data) {
-				this.logger.error('Erreur lors de la récupération des matchs')
+				logger.error('Erreur lors de la récupération des matchs')
 				return []
 			}
 
 			allMatches.push(...response.data)
 
-			const hasNextPage = response.headers.link?.includes('rel="next"')
+			const hasNextPage = response.headers?.link?.includes('rel="next"')
 			if (hasNextPage) {
-				this.logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
+				logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getMatches(startDate, endDate, pageNumber + 1, allMatches)
 			}
 
-			this.logger.info(`Tous les matchs ${this.game} ont été récupérés.`)
+			logger.info(`Tous les matchs ${this.game} ont été récupérés.`)
 			return allMatches
 
 		} catch (error) {
-			this.logger.error(
+			logger.error(
 				'Erreur lors de la requête:',
 				error.response ? error.response.data : error.message
 			)
@@ -55,31 +55,32 @@ export class ApiService {
 					token: TOKEN_API,
 				},
 			})
-			
-			if (!response.data){
-				this.logger.error('Erreur lors de la récupération des gagnant')
+
+			if (!response.data) {
+				logger.error('Erreur lors de la récupération des gagnants')
 				return []
 			}
 
 			const winnersId = response.data
-				.filter((tournament) => tournament.winner_id !== null && tournament.years === this.years)
+				.filter((tournament) => tournament.winner_id !== null)
 				.map((team) => team.winner_id)
 			allWinners.push(...winnersId)
 
-			const linkHeader = response.headers.link
-
-			if (linkHeader && linkHeader.includes('rel="next"')) {
-				this.logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
+			const hasNextPage = response.headers?.link?.includes('rel="next"')
+			if (hasNextPage) {
+				logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getLastWinnerSeries(pageNumber + 1, allWinners)
-			} else {
-				this.logger.info(`Tous les gagnants de ${this.game} ont été récupérés.`)
-				return allWinners
 			}
+
+			logger.info(`Tous les gagnants de ${this.game} ont été récupérés.`)
+			return allWinners
+
 		} catch (error) {
-			this.logger.error(
+			logger.error(
 				'Erreur lors de la requête Last winner:',
 				error.response ? error.response.data : error.message
 			)
+			return []
 		}
 	}
 }

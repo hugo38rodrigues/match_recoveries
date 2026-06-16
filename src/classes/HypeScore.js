@@ -1,9 +1,8 @@
 import { gamesHype, leaguesHype } from '../utils/hype-data.utils.js'
-import Logger from './logger.js'
+import { logger } from '../utils/logger.js'
 
 export class HypeScore {
 	constructor () {
-		this.logger = new Logger()
 	}
 
 	computeHypeScore = (gameName, leagueName, team1Id, team2Id, lastWinner) => {
@@ -16,7 +15,7 @@ export class HypeScore {
 			const hypeScoreTotal = gameScoreHype + leagueScoreHype + teams1ScoreHype + teams2ScoreHype
 			return hypeScoreTotal === 4 ? 3 : hypeScoreTotal
 		} catch (error) {
-			this.logger.error(error)
+			logger.error(error)
 		}
 	}
 }

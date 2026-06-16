@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { HypeScore } from '../../classes/HypeScore.js'
 import { gamesHype, leaguesHype } from '../../utils/hype-data.utils.js'
+import { logger } from '../../utils/logger.js'
 
 // On récupère des valeurs réelles depuis les données
 const KNOWN_GAME = gamesHype[0]
@@ -80,16 +81,16 @@ describe('HypeScore.js', () => {
 
 		describe('Gestion des erreurs', () => {
 			test('Doit appeler logger.error si lastWinner est null', () => {
-				score.logger.error = vi.fn()
+				logger.error = vi.fn()
 				score.computeHypeScore(KNOWN_GAME, KNOWN_LEAGUE, 1, 2, null)
-				expect(score.logger.error).toHaveBeenCalledOnce()
-				expect(score.logger.error).toHaveBeenCalledWith(expect.any(Error))
+				expect(logger.error).toHaveBeenCalledOnce()
+				expect(logger.error).toHaveBeenCalledWith(expect.any(Error))
 			})
 
 			test('Doit appeler logger.error si lastWinner est undefined', () => {
-				score.logger.error = vi.fn()
+				logger.error = vi.fn()
 				score.computeHypeScore(KNOWN_GAME, KNOWN_LEAGUE, 1, 2, undefined)
-				expect(score.logger.error).toHaveBeenCalledOnce()
+				expect(logger.error).toHaveBeenCalledOnce()
 			})
 
 			test('Ne doit pas throw même en cas d\'erreur', () => {

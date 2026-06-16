@@ -7,6 +7,15 @@ import { FormattingService } from '../../../classes/services/Formatting.service.
 import { ValidationService } from '../../../classes/services/Validation.service.js'
 import { makeBaseFields, makeTeam } from './utils.js'
 
+const { makeLogger } = vi.hoisted(() => ({
+	makeLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		warn: vi.fn(),
+	},
+}))
+
+
 vi.mock('../../../classes/HypeScore.js', () => ({
 	HypeScore: vi.fn(),
 }))
@@ -26,6 +35,8 @@ vi.mock('../../../classes/services/Formatting.service.js', () => ({
 vi.mock('../../../classes/services/Validation.service.js', () => ({
 	ValidationService: vi.fn(),
 }))
+vi.mock('../../../utils/logger.js', () => ({ logger: makeLogger }))
+
 
 
 describe('Match.js', () => {
@@ -81,7 +92,7 @@ describe('Match.js', () => {
 		})
 
 		it('instancie ApiService avec le bon game', () => {
-			expect(ApiService).toHaveBeenCalledWith('LoL', expect.anything())
+			expect(ApiService).toHaveBeenCalledWith('LoL')
 		})
 	})
 	describe('createdMatch()', () => {

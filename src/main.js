@@ -1,10 +1,10 @@
 import { db } from '@hugo38rodrigues/bdd-service-hall-e/main.js'
 import dotenv from 'dotenv'
 import { Match } from './classes/Match.js'
-import Logger from './classes/logger.js'
+import { logger } from './utils/logger.js'
+
 
 dotenv.config()
-const logger = new Logger()
 const lol = new Match('lol')
 const csGo = new Match('csgo')
 const valorant = new Match('valorant')

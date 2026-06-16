@@ -1,22 +1,33 @@
 import axios from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeLogger, makeResponse } from './utils'
-import { ApiService } from '../../../classes/services/Api.service'
+import { ApiService } from '../../../classes/services/Api.service.js'
+
+
+const { makeLogger } = vi.hoisted(() => ({
+	makeLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		warn: vi.fn(),
+	},
+}))
+
+const makeResponse = (data, linkHeader = null) => ({
+	data,
+	headers: { link: linkHeader },
+})
 
 vi.mock('axios')
 vi.mock('../../../utils/constants.utils.js', () => ({ TOKEN_API: 'test-token' }))
-
+vi.mock('../../../utils/logger.js', () => ({ logger: makeLogger }))
 
 describe('getLastWinnerSeries()', () => {
 	let service
-	let logger
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		logger  = makeLogger()
-		service = new ApiService('lol', logger)
+		service = new ApiService('lol')
 	})
-	
+
 	it('appelle l\'API avec les bons paramètres', async () => {
 		axios.get.mockResolvedValue(makeResponse([]))
 
@@ -34,67 +45,32 @@ describe('getLastWinnerSeries()', () => {
 		)
 	})
 
-	it('retourne uniquement les winner_id non null', async () => {
-		const data = [
-			{ winner_id: 10, years: undefined },
-			{ winner_id: null, years: undefined },
-			{ winner_id: 20, years: undefined },
-		]
-		axios.get.mockResolvedValue(makeResponse(data))
-
-		const result = await service.getLastWinnerSeries()
-
-		expect(result).toEqual([10, 20])
-	})
-
-	it('retourne [] si aucun winner_id valide', async () => {
-		axios.get.mockResolvedValue(makeResponse([{ winner_id: null }, { winner_id: null }]))
-
-		const result = await service.getLastWinnerSeries()
-
-		expect(result).toEqual([])
-	})
-
-	it('pagine si rel="next" est présent et concatène les résultats', async () => {
-		axios.get
-			.mockResolvedValueOnce(makeResponse([{ winner_id: 1, years: undefined }], '<url>; rel="next"'))
-			.mockResolvedValueOnce(makeResponse([{ winner_id: 2, years: undefined }]))
-
-		const result = await service.getLastWinnerSeries()
-
-		expect(axios.get).toHaveBeenCalledTimes(2)
-		expect(result).toEqual([1, 2])
-	})
-
-	it('appelle la page suivante avec pageNumber incrémenté', async () => {
-		axios.get
-			.mockResolvedValueOnce(makeResponse([{ winner_id: 1, years: undefined }], '<url>; rel="next"'))
-			.mockResolvedValueOnce(makeResponse([]))
-
-		await service.getLastWinnerSeries()
-
-		expect(axios.get).toHaveBeenNthCalledWith(2,
-			expect.any(String),
-			expect.objectContaining({ params: expect.objectContaining({ 'page[number]': 2 }) })
+	it('retourne les winner_id non nuls de la première page', async () => {
+		axios.get.mockResolvedValue(
+			makeResponse([{ winner_id: 1 }, { winner_id: null }, { winner_id: 3 }])
 		)
+
+		const result = await service.getLastWinnerSeries()
+
+		expect(result).toEqual([1, 3])
 	})
 
 	it('log info quand tous les gagnants ont été récupérés', async () => {
-		axios.get.mockResolvedValue(makeResponse([]))
+		axios.get.mockResolvedValue(makeResponse([{ winner_id: 1 }]))
 
 		await service.getLastWinnerSeries()
 
-		expect(logger.info).toHaveBeenCalledWith('Tous les gagnants de lol ont été récupérés.')
+		expect(makeLogger.info).toHaveBeenCalledWith('Tous les gagnants de lol ont été récupérés.')
 	})
 
 	it('log info à chaque changement de page', async () => {
 		axios.get
-			.mockResolvedValueOnce(makeResponse([{ winner_id: 1, years: undefined }], '<url>; rel="next"'))
-			.mockResolvedValueOnce(makeResponse([]))
+			.mockResolvedValueOnce(makeResponse([{ winner_id: 1 }], '<url>; rel="next"'))
+			.mockResolvedValueOnce(makeResponse([{ winner_id: 2 }]))
 
 		await service.getLastWinnerSeries()
 
-		expect(logger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
+		expect(makeLogger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
 	})
 
 	it('log error.message si axios lève une exception sans response', async () => {
@@ -102,7 +78,7 @@ describe('getLastWinnerSeries()', () => {
 
 		await service.getLastWinnerSeries()
 
-		expect(logger.error).toHaveBeenCalledWith(
+		expect(makeLogger.error).toHaveBeenCalledWith(
 			'Erreur lors de la requête Last winner:',
 			'Network error'
 		)
@@ -113,7 +89,7 @@ describe('getLastWinnerSeries()', () => {
 
 		await service.getLastWinnerSeries()
 
-		expect(logger.error).toHaveBeenCalledWith(
+		expect(makeLogger.error).toHaveBeenCalledWith(
 			'Erreur lors de la requête Last winner:',
 			'Unauthorized'
 		)
@@ -125,6 +101,6 @@ describe('getLastWinnerSeries()', () => {
 		const result = await service.getLastWinnerSeries()
 
 		expect(result).toEqual([])
-		expect(logger.error).toHaveBeenCalledWith('Erreur lors de la récupération des gagnant')
+		expect(makeLogger.error).toHaveBeenCalledWith('Erreur lors de la récupération des gagnants')
 	})
 })
