@@ -30,7 +30,7 @@ export class ApiService {
 
 			const hasNextPage = response.headers?.link?.includes('rel="next"')
 			if (hasNextPage) {
-				logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
+				logger.debug(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getMatches(startDate, endDate, pageNumber + 1, allMatches)
 			}
 
@@ -68,7 +68,7 @@ export class ApiService {
 
 			const hasNextPage = response.headers?.link?.includes('rel="next"')
 			if (hasNextPage) {
-				logger.info(`Page ${pageNumber} récupérée, passage à la suivante...`)
+				logger.debug(`Page ${pageNumber} récupérée, passage à la suivante...`)
 				return this.getLastWinnerSeries(pageNumber + 1, allWinners)
 			}
 
