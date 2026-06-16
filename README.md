@@ -109,6 +109,6 @@ docker stop recuperation-hall-e-v1 && docker rm recuperation-hall-e-v1   # arrê
 
 <div align="center">
 
-🔗 **Projets liés** — [App mobile](./README-mobile.md) · [API](./README-api.md) · [Package BDD](./README-bdd.md)
+🔗 **Projets liés** — [App mobile](https://github.com/hugo38rodrigues/mobile-hall-e/README.md) · [API](https://github.com/hugo38rodrigues/hall-e-back/README.md) · [Package BDD](https://github.com/hugo38rodrigues/bdd-hall-e/README.md)
 
 </div>
