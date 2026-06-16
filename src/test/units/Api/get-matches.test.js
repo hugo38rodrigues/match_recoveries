@@ -8,6 +8,7 @@ const { makeLogger } = vi.hoisted(() => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
+		debug: vi.fn()
 	},
 }))
 
@@ -104,7 +105,7 @@ describe('getMatches()', () => {
 
 		await service.getMatches('2024-01-01', '2024-01-08')
 
-		expect(makeLogger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
+		expect(makeLogger.debug).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
 	})
 
 	it('retourne [] et log error.message si axios lève une exception sans response', async () => {

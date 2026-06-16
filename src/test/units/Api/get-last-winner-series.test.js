@@ -8,6 +8,7 @@ const { makeLogger } = vi.hoisted(() => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
+		debug: vi.fn()
 	},
 }))
 
@@ -70,7 +71,7 @@ describe('getLastWinnerSeries()', () => {
 
 		await service.getLastWinnerSeries()
 
-		expect(makeLogger.info).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
+		expect(makeLogger.debug).toHaveBeenCalledWith('Page 1 récupérée, passage à la suivante...')
 	})
 
 	it('log error.message si axios lève une exception sans response', async () => {
