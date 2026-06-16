@@ -71,25 +71,6 @@ export GITHUB_TOKEN=<GH_TOKEN>
 npm install
 ```
 
-### 🔐 Configuration (.env)
-
-| Variable         | Description                            | Exemple                          |
-| ---------------- | -------------------------------------- | -------------------------------- |
-| `DATABASE_URL`  	| Connexion à la base de données         | `postgres://user:pwd@host/halle` |
-| `FETCH_INTERVAL`	| Fréquence de récupération (cron)       | `*/15 * * * *`                   |
-| `SOURCE_API_URL`	| URL de la source externe de matchs     | `<url>`                          |
-| `TOKEN_API`     	| Clé d'accès à la source externe        | `<token>`                          |
-| `DB_ADAPTER`    	| Clé d'accès à la source externe			   | `<postgres>`                          |
-| `LOG_LEVEL` 			| Clé d'accès à la source externe        | `<info,>`                          |
-| `PGDATABASE` 			| Clé d'accès à la source externe        | `<key>`                          |
-| `PGUSER` 					| Clé d'accès à la source externe        | `<key>`                          |
-| `PGPASSWORD` 			| Clé d'accès à la source externe        | `<key>`                          |
-| `PGHOST` 					| Clé d'accès à la source externe        | `<key>`                          |
-| `PGPORT` 					| Clé d'accès à la source externe        | `<key>`                          |
-| `PGSSL` 					| Clé d'accès à la source externe        | `<key>`                          |
-| `NODE_ENV` 				| Clé d'accès à la source externe        | `<key>`                          |
-
-
 ### ▶️ Lancement
 
 ```bash
@@ -123,8 +104,6 @@ docker run \
 docker logs -f recuperation-hall-e-v1                          # logs
 docker stop recuperation-hall-e-v1 && docker rm recuperation-hall-e-v1   # arrêt + suppression
 ```
-
-> 💡 Ne committe jamais ton `GITHUB_TOKEN` ni tes fichiers `.env`.
 
 ---
 
