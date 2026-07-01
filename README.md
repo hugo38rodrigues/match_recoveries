@@ -29,7 +29,6 @@ Sans lui, pas de matchs à afficher : c'est lui qui garde Hall-E à jour. 🎮
 - ⏱️ **Récupération planifiée** — synchronisation automatique à intervalle régulier.
 - 🧹 **Normalisation** — mise en forme cohérente des matchs et diffusions.
 - 💾 **Persistance** — insertion / mise à jour en base via `@hall-e/bdd`.
-- 
 
 ### 🔗 Place dans l'architecture
 
