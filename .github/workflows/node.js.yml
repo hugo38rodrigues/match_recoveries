@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./src
+        working-directory: ./app
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
-          cache-dependency-path: src/package-lock.json
+          cache-dependency-path: app/package-lock.json
           registry-url: "https://npm.pkg.github.com"
           scope: "@hugo38rodrigues"
 
@@ -64,7 +64,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "VERSION=$(node -p "require('./src/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION=$(node -p "require('./app/package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Check if tag already exists
         id: tag_check
