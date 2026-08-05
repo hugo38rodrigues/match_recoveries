@@ -1,0 +1,27 @@
+{
+    "main": "main.js",
+    "author": "Xwdrblue",
+    "type": "module",
+    "license": "ISC",
+    "version": "1.0.0",
+    "scripts": {
+        "lint": "npx eslint",
+        "fix-eslint": "npx eslint --fix ",
+        "load-data": "node main.js",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@hugo38rodrigues/bdd-service-hall-e": "^1.0.0",
+        "axios": "^1.19.0",
+        "date-fns": "^4.4.0",
+        "dotenv": "^17.4.2"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@stylistic/eslint-plugin-js": "^4.4.1",
+        "eslint": "^10.8.0",
+        "globals": "^17.9.0",
+        "typescript": "^7.0.2",
+        "vitest": "^4.1.10"
+    }
+}

@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main", "feature/**", "bugFix/**", "hotFix/**", "fix/**"]
   pull_request:
-    branches: ["feature/**", "bugFix/**", "hotFix/**"]
+    branches: ["feature/**", "bugFix/**", "hotFix/**", "fix/**"]
 
 # Annule les runs précédents sur la même ref (économise les minutes CI)
 concurrency:
