@@ -5,7 +5,7 @@ FROM node:24-slim AS builder
 WORKDIR /app
 
 # Copie manifeste + lock (npm ci = reproductible)
-COPY ./app/package*.json ./
+COPY package*.json ./
 
 # Install deps avec secret monté (jamais dans une layer, jamais dans l'historique)
 RUN --mount=type=secret,id=github_token \
@@ -23,7 +23,7 @@ RUN --mount=type=secret,id=github_token \
     npm cache clean --force
 
 # Copie le reste du code APRÈS install pour profiter du cache des dépendances
-COPY ./app .
+COPY . .
 
 
 ############################
